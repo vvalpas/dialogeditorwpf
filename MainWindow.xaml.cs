@@ -71,7 +71,7 @@ namespace DialogEditorWPF
 		private string m_currentlyOpenFile;
 		private object m_selectedObject;
 		private bool m_canSave;
-		public string version = "0.0.2";
+		public string version = "0.0.3";
 
 		public MainWindow()
 		{
@@ -97,8 +97,10 @@ namespace DialogEditorWPF
 					}
 				}
 			}
-
-			New_Executed(null,null);
+			else
+			{
+				Close_Executed(null, null);
+			}
 
 			gViewer.DoubleClick += OnDoubleClick;
 			gViewer.Click += GViewerOnClick;
@@ -185,26 +187,29 @@ namespace DialogEditorWPF
 			var graph = new Graph("graph");
 			graph.Attr.LayerDirection = LayerDirection.LR;
 
-			foreach (var passage in m_passages)
+			if (m_passages != null)
 			{
-				graph.AddNode(CreateNode(passage));
-			}
-
-			// parse links
-			foreach (var passage in m_passages)
-			{
-				foreach (var link in GetLinks(passage.body))
+				foreach (var passage in m_passages)
 				{
-					if (m_passages.Any(x => x.title == link))
-						graph.AddEdge(passage.title, link);
+					graph.AddNode(CreateNode(passage));
 				}
 
-				// also add edges with shorthand print
-				var includes = GetIncludes(passage.body);
-				foreach (var include in includes)
+				// parse links
+				foreach (var passage in m_passages)
 				{
-					var edge = graph.AddEdge(include, passage.title);
-					edge.Attr.Color = Microsoft.Msagl.Drawing.Color.CornflowerBlue;
+					foreach (var link in GetLinks(passage.body))
+					{
+						if (m_passages.Any(x => x.title == link))
+							graph.AddEdge(passage.title, link);
+					}
+
+					// also add edges with shorthand print
+					var includes = GetIncludes(passage.body);
+					foreach (var include in includes)
+					{
+						var edge = graph.AddEdge(include, passage.title);
+						edge.Attr.Color = Microsoft.Msagl.Drawing.Color.CornflowerBlue;
+					}
 				}
 			}
 
@@ -242,6 +247,20 @@ namespace DialogEditorWPF
 		private Node CreateNode(JsonData.Passage passage)
 		{
 			return new Node(passage.title){UserData = passage.title};
+		}
+
+		private void Close_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+		{
+			e.CanExecute = m_passages != null;
+		}
+
+		private void Close_Executed(object sender, ExecutedRoutedEventArgs e)
+		{
+			m_passages = null;
+			m_canSave = false;
+			m_currentlyOpenFile = string.Empty;
+			Title = "DialogEditor";
+			CreateGraph();
 		}
 
 		private void New_CanExecute(object sender, CanExecuteRoutedEventArgs e)

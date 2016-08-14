@@ -10,6 +10,7 @@
         <CommandBinding Command="Save" CanExecute="Save_CanExecute" Executed="Save_Executed" />
         <CommandBinding Command="SaveAs" CanExecute="SaveAs_CanExecute" Executed="SaveAs_Executed" />
         <CommandBinding Command="Open" CanExecute="Open_CanExecute" Executed="Open_Executed" />
+        <CommandBinding Command="Close" CanExecute="Close_CanExecute" Executed="Close_Executed" />
         <CommandBinding Command="self:CustomCommands.AddPassage" CanExecute="AddPassage_CanExecute" Executed="AddPassage_Executed" />
         <CommandBinding Command="self:CustomCommands.DelPassage" CanExecute="DelPassage_CanExecute" Executed="DelPassage_Executed" />
     </Window.CommandBindings>
