@@ -18,14 +18,21 @@ using System.Xml.Serialization;
 using Microsoft.Msagl.Drawing;
 using Microsoft.Win32;
 using Newtonsoft.Json;
-using Color = System.Drawing.Color;
 using Formatting = Newtonsoft.Json.Formatting;
-using MouseEventArgs = System.Windows.Forms.MouseEventArgs;
+using ModifierKeys = System.Windows.Input.ModifierKeys;
 using Path = System.IO.Path;
 
 namespace DialogEditorWPF
 {
-	
+	public static class CustomCommands
+	{
+		public static readonly RoutedUICommand AddPassage = new RoutedUICommand("Add Passage", "Add Passage",
+			typeof (CustomCommands),
+			new InputGestureCollection() {new KeyGesture(Key.N, ModifierKeys.Shift | ModifierKeys.Control)});
+		public static readonly RoutedUICommand DelPassage = new RoutedUICommand("Delete Passage", "Delete Passage",
+			typeof(CustomCommands),
+			new InputGestureCollection() { new KeyGesture(Key.Delete, ModifierKeys.None) });
+	}
 
 	/// <summary>
 	/// Interaction logic for MainWindow.xaml
@@ -63,6 +70,8 @@ namespace DialogEditorWPF
 		private List<JsonData.Passage> m_passages = new List<JsonData.Passage>();
 		private string m_currentlyOpenFile;
 		private object m_selectedObject;
+		private bool m_canSave;
+		public string version = "0.0.2";
 
 		public MainWindow()
 		{
@@ -70,10 +79,10 @@ namespace DialogEditorWPF
 
 			CreateGraph();
 
-			AddPassageButton.IsEnabled = false;
+			/*AddPassageButton.IsEnabled = false;
 			SaveButton.IsEnabled = false;
 			SaveAsButton.IsEnabled = false;
-			DeletePassageButton.IsEnabled = false;
+			DeletePassageButton.IsEnabled = false;*/
 
 			var args = Environment.GetCommandLineArgs();
 			if (args.Length > 1)
@@ -89,6 +98,8 @@ namespace DialogEditorWPF
 				}
 			}
 
+			New_Executed(null,null);
+
 			gViewer.DoubleClick += OnDoubleClick;
 			gViewer.Click += GViewerOnClick;
 		}
@@ -96,7 +107,7 @@ namespace DialogEditorWPF
 		private void GViewerOnClick(object sender, EventArgs eventArgs)
 		{
 			m_selectedObject = gViewer.SelectedObject;
-			DeletePassageButton.IsEnabled = m_selectedObject != null;
+			//DeletePassageButton.IsEnabled = m_selectedObject != null;
 		}
 
 		private void OnDoubleClick(object sender, EventArgs e)
@@ -111,6 +122,8 @@ namespace DialogEditorWPF
 
 				var win = new PassageEditor();
 				win.mainWindow = this;
+				win.ShowInTaskbar = false;
+				win.Owner = this;
 				win.LoadData(m_passages.FirstOrDefault(x => x.title == selectedPassage));
 				win.Show();
 			}
@@ -119,6 +132,7 @@ namespace DialogEditorWPF
 		public void LoadFile(string path)
 		{
 			m_currentlyOpenFile = path;
+			Title = "DialogEditor (" + m_currentlyOpenFile + ")";
 
 			if (path.Contains(".json"))
 			{
@@ -137,9 +151,9 @@ namespace DialogEditorWPF
 				MessageBox.Show("Invalid file format", "Error");
 			}
 
-			AddPassageButton.IsEnabled = true;
+			/*AddPassageButton.IsEnabled = true;
 			SaveButton.IsEnabled = true;
-			SaveAsButton.IsEnabled = true;
+			SaveAsButton.IsEnabled = true;*/
 			CreateGraph();
 		}
 
@@ -161,6 +175,9 @@ namespace DialogEditorWPF
 			{
 				File.WriteAllText(path, JsonConvert.SerializeObject(data, Formatting.Indented));
 			}
+
+			m_currentlyOpenFile = path;
+			Title = "DialogEditor (" + m_currentlyOpenFile + ")";
 		}
 
 		private void CreateGraph()
@@ -227,24 +244,39 @@ namespace DialogEditorWPF
 			return new Node(passage.title){UserData = passage.title};
 		}
 
-		private void NewButton_Click(object sender, RoutedEventArgs e)
+		private void New_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+		{
+			e.CanExecute = true;
+		}
+
+		private void New_Executed(object sender, ExecutedRoutedEventArgs e)
 		{
 			m_passages = new List<JsonData.Passage>();
-			m_passages.Add(new JsonData.Passage {title = "Start"});
+			m_passages.Add(new JsonData.Passage { title = "Start" });
 
-			AddPassageButton.IsEnabled = true;
-			SaveButton.IsEnabled = true;
-			SaveAsButton.IsEnabled = true;
+			m_canSave = true;
+			m_currentlyOpenFile = string.Empty;
+			Title = "DialogEditor";
 
 			CreateGraph();
 		}
 
-		private void SaveButton_Click(object sender, RoutedEventArgs e)
+		private void Save_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+		{
+			e.CanExecute = m_canSave;
+		}
+
+		private void Save_Executed(object sender, ExecutedRoutedEventArgs e)
 		{
 			Save(m_currentlyOpenFile);
 		}
 
-		private void SaveAsButton_Click(object sender, RoutedEventArgs e)
+		private void SaveAs_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+		{
+			e.CanExecute = m_canSave;
+		}
+
+		private void SaveAs_Executed(object sender, ExecutedRoutedEventArgs e)
 		{
 			var saveDialog = new SaveFileDialog();
 			saveDialog.Filter = "Dialog File (*.dxml)|*.dxml|Dialog JSON (*.json)|*.json|All files (*.*)|*.*";
@@ -254,7 +286,12 @@ namespace DialogEditorWPF
 			}
 		}
 
-		private void OpenButton_Click(object sender, RoutedEventArgs e)
+		private void Open_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+		{
+			e.CanExecute = true;
+		}
+
+		private void Open_Executed(object sender, ExecutedRoutedEventArgs e)
 		{
 			var openFileDialog = new OpenFileDialog();
 			openFileDialog.Filter = "Dialog XML (*.dxml)|*.dxml|Dialog JSON (*.json)|*.json|All files (*.*)|*.*";
@@ -264,7 +301,12 @@ namespace DialogEditorWPF
 			}
 		}
 
-		private void AddPassageButton_Click(object sender, RoutedEventArgs e)
+		private void AddPassage_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+		{
+			e.CanExecute = m_passages != null;
+		}
+
+		private void AddPassage_Executed(object sender, ExecutedRoutedEventArgs e)
 		{
 			var name = string.Empty;
 			var i = 0;
@@ -278,7 +320,12 @@ namespace DialogEditorWPF
 			CreateGraph();
 		}
 
-		private void DeletePassageButton_OnClick(object sender, RoutedEventArgs e)
+		private void DelPassage_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+		{
+			e.CanExecute = m_selectedObject != null;
+		}
+
+		private void DelPassage_Executed(object sender, ExecutedRoutedEventArgs e)
 		{
 			if (m_selectedObject != null)
 			{
