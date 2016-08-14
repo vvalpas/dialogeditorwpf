@@ -70,8 +70,7 @@ namespace DialogEditorWPF
 		private List<JsonData.Passage> m_passages = new List<JsonData.Passage>();
 		private string m_currentlyOpenFile;
 		private object m_selectedObject;
-		private bool m_canSave;
-		public string version = "0.0.3";
+		public string version = "0.0.4";
 
 		public MainWindow()
 		{
@@ -257,7 +256,6 @@ namespace DialogEditorWPF
 		private void Close_Executed(object sender, ExecutedRoutedEventArgs e)
 		{
 			m_passages = null;
-			m_canSave = false;
 			m_currentlyOpenFile = string.Empty;
 			Title = "DialogEditor";
 			CreateGraph();
@@ -273,7 +271,6 @@ namespace DialogEditorWPF
 			m_passages = new List<JsonData.Passage>();
 			m_passages.Add(new JsonData.Passage { title = "Start" });
 
-			m_canSave = true;
 			m_currentlyOpenFile = string.Empty;
 			Title = "DialogEditor";
 
@@ -282,7 +279,7 @@ namespace DialogEditorWPF
 
 		private void Save_CanExecute(object sender, CanExecuteRoutedEventArgs e)
 		{
-			e.CanExecute = m_canSave;
+			e.CanExecute = m_passages != null;
 		}
 
 		private void Save_Executed(object sender, ExecutedRoutedEventArgs e)
@@ -292,7 +289,7 @@ namespace DialogEditorWPF
 
 		private void SaveAs_CanExecute(object sender, CanExecuteRoutedEventArgs e)
 		{
-			e.CanExecute = m_canSave;
+			e.CanExecute = m_passages != null;
 		}
 
 		private void SaveAs_Executed(object sender, ExecutedRoutedEventArgs e)
