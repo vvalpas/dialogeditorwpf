@@ -45,6 +45,7 @@ namespace DialogEditorWPF
 			{
 				public string title = "New Passage";
 
+				[JsonIgnore]
 				[XmlElement("body")]
 				public XmlCDataSection Message
 				{
