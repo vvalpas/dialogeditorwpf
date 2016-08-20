@@ -16,6 +16,9 @@ using System.Windows.Shapes;
 using System.Xml;
 using System.Xml.Serialization;
 using Microsoft.Msagl.Drawing;
+using Microsoft.Msagl.GraphViewerGdi;
+using Microsoft.Msagl.Layout.Layered;
+using Microsoft.Msagl.Layout.MDS;
 using Microsoft.Win32;
 using Newtonsoft.Json;
 using Formatting = Newtonsoft.Json.Formatting;
@@ -32,6 +35,12 @@ namespace DialogEditorWPF
 		public static readonly RoutedUICommand DelPassage = new RoutedUICommand("Delete Passage", "Delete Passage",
 			typeof(CustomCommands),
 			new InputGestureCollection() { new KeyGesture(Key.Delete, ModifierKeys.None) });
+		public static readonly RoutedUICommand MDS = new RoutedUICommand("MDS", "MDS",
+			typeof(CustomCommands),
+			new InputGestureCollection() { });
+		public static readonly RoutedUICommand Sugiyama = new RoutedUICommand("Sugiyama", "Sugiyama",
+			typeof(CustomCommands),
+			new InputGestureCollection() { });
 	}
 
 	/// <summary>
@@ -71,7 +80,8 @@ namespace DialogEditorWPF
 		private List<JsonData.Passage> m_passages = new List<JsonData.Passage>();
 		private string m_currentlyOpenFile;
 		private object m_selectedObject;
-		public string version = "0.0.4";
+		public string version = "0.0.5";
+		private bool m_viewMDS;
 
 		public MainWindow()
 		{
@@ -185,7 +195,15 @@ namespace DialogEditorWPF
 		private void CreateGraph()
 		{
 			var graph = new Graph("graph");
-			graph.Attr.LayerDirection = LayerDirection.LR;
+			if (m_viewMDS)
+			{
+				graph.LayoutAlgorithmSettings = new MdsLayoutSettings();
+			}
+			else
+			{
+				graph.LayoutAlgorithmSettings = new SugiyamaLayoutSettings();
+				graph.Attr.LayerDirection = LayerDirection.LR;
+			}
 
 			if (m_passages != null)
 			{
@@ -213,6 +231,7 @@ namespace DialogEditorWPF
 				}
 			}
 
+			gViewer.CurrentLayoutMethod = LayoutMethod.UseSettingsOfTheGraph;
 			gViewer.Graph = graph;
 		}
 
@@ -259,6 +278,28 @@ namespace DialogEditorWPF
 			m_passages = null;
 			m_currentlyOpenFile = string.Empty;
 			Title = "DialogEditor";
+			CreateGraph();
+		}
+
+		private void MDS_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+		{
+			e.CanExecute = true;
+		}
+
+		private void Sugiyama_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+		{
+			e.CanExecute = true;
+		}
+
+		private void MDS_Executed(object sender, ExecutedRoutedEventArgs e)
+		{
+			m_viewMDS = true;
+			CreateGraph();
+		}
+
+		private void Sugiyama_Executed(object sender, ExecutedRoutedEventArgs e)
+		{
+			m_viewMDS = false;
 			CreateGraph();
 		}
 

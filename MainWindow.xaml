@@ -13,6 +13,8 @@
         <CommandBinding Command="Close" CanExecute="Close_CanExecute" Executed="Close_Executed" />
         <CommandBinding Command="self:CustomCommands.AddPassage" CanExecute="AddPassage_CanExecute" Executed="AddPassage_Executed" />
         <CommandBinding Command="self:CustomCommands.DelPassage" CanExecute="DelPassage_CanExecute" Executed="DelPassage_Executed" />
+        <CommandBinding Command="self:CustomCommands.MDS" CanExecute="MDS_CanExecute" Executed="MDS_Executed" />
+        <CommandBinding Command="self:CustomCommands.Sugiyama" CanExecute="Sugiyama_CanExecute" Executed="Sugiyama_Executed" />
     </Window.CommandBindings>
     
     <Grid>
@@ -30,6 +32,10 @@
                 <MenuItem Command="Paste" />
                 <MenuItem Command="self:CustomCommands.AddPassage" />
                 <MenuItem Command="self:CustomCommands.DelPassage" />
+            </MenuItem>
+            <MenuItem Header="_View">
+                <MenuItem Command="self:CustomCommands.MDS" />
+                <MenuItem Command="self:CustomCommands.Sugiyama" />
             </MenuItem>
         </Menu>
         <WindowsFormsHost Name="windowsFormsHost1" FontSize="10" Margin="0,23,0,0">
