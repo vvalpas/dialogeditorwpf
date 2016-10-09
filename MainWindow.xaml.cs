@@ -231,6 +231,8 @@ namespace DialogEditorWPF
 				}
 			}
 
+
+
 			gViewer.CurrentLayoutMethod = LayoutMethod.UseSettingsOfTheGraph;
 			gViewer.Graph = graph;
 		}
@@ -239,7 +241,7 @@ namespace DialogEditorWPF
 		{
 			var list = new List<string>();
 			var done = false;
-			var regex = @"<<\w+>>";
+			const string regex = @"<<\w+>>";
 			while (!done)
 			{
 				done = true;
@@ -250,11 +252,11 @@ namespace DialogEditorWPF
 					var left = str.Substring(0, match.Index);
 					var tag = str.Substring(match.Index, match.Length);
 					var right = str.Substring(match.Index + match.Length);
-					var psg = m_passages.FirstOrDefault(x => x.title == tag.Substring(2, tag.Length - 4));
+					var psg = m_passages.FirstOrDefault(x => x.title.Equals(tag.Substring(2, tag.Length - 4)));
 					if (psg != null)
 					{
 						list.Add(psg.title);
-						str = left + psg.body.Trim('\n', '\r') + right;
+						str = left + right;
 						done = false;
 						break;
 					}
