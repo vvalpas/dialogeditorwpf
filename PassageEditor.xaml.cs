@@ -31,9 +31,14 @@ namespace DialogEditorWPF
 			return stream;
 		}
 
-		public PassageEditor()
+		public PassageEditor(MainWindow.JsonData.Passage data)
 		{
 			InitializeComponent();
+
+			m_passage = data;
+			TitleField.Text = data.title;
+			TagsField.Text = String.Join(" ", data.tags);
+			Editor.Text = data.body;
 
 			if (highlight == null)
 			{
@@ -107,14 +112,6 @@ namespace DialogEditorWPF
 
 			mainWindow.PassageUpdated();
 			mainWindow.Activate();
-		}
-
-		public void LoadData(MainWindow.JsonData.Passage data)
-		{
-			m_passage = data;
-			TitleField.Text = data.title;
-			TagsField.Text = String.Join(" ", data.tags);
-			Editor.Text = data.body;
 		}
 	}
 }

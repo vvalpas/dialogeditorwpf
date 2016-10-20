@@ -153,11 +153,10 @@ namespace DialogEditorWPF
 				if (m_selectedObject is Node)
 					selectedPassage = (m_selectedObject as Node).UserData.ToString();
 
-				var win = new PassageEditor();
+				var win = new PassageEditor(m_passages.FirstOrDefault(x => x.title == selectedPassage));
 				win.mainWindow = this;
 				win.ShowInTaskbar = false;
 				win.Owner = this;
-				win.LoadData(m_passages.FirstOrDefault(x => x.title == selectedPassage));
 				win.Show();
 			}
 		}
@@ -192,6 +191,7 @@ namespace DialogEditorWPF
 
 		public void MadeChanges()
 		{
+			Title = "DialogEditor (" + m_currentlyOpenFile + "*)";
 			m_hasChanges = true;
 		}
 
@@ -216,6 +216,7 @@ namespace DialogEditorWPF
 
 			m_currentlyOpenFile = path;
 			Title = "DialogEditor (" + m_currentlyOpenFile + ")";
+			m_hasChanges = false;
 		}
 
 		private void CreateGraph()
