@@ -80,7 +80,7 @@ namespace DialogEditorWPF
 		private List<JsonData.Passage> m_passages = new List<JsonData.Passage>();
 		private string m_currentlyOpenFile;
 		private object m_selectedObject;
-		public string version = "0.0.5";
+		public string version = "0.0.6";
 		private bool m_viewMDS;
 		private bool m_hasChanges;
 
