@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Xml;
@@ -58,6 +60,7 @@ namespace DialogEditorWPF
 		private void EditorOnTextChanged(object sender, EventArgs eventArgs)
 		{
 			m_passage.body = Editor.Text;
+			mainWindow.MadeChanges();
 		}
 
 		private void TagsFieldOnTextChanged(object sender, TextChangedEventArgs textChangedEventArgs)
@@ -76,7 +79,34 @@ namespace DialogEditorWPF
 
 		private void WindowClosing(object sender, CancelEventArgs e)
 		{
+			var missing = new List<string>();
+			var links = MainWindow.GetLinks(m_passage.body);
+			foreach (var link in links)
+			{
+				if (mainWindow.GetPassageCount(link) == 0)
+				{
+					missing.Add(link);
+				}
+			}
+
+			if (missing.Count > 0)
+			{
+				var result = MessageBox.Show("There are new links to other passages. Create empty passages for these?", "Add New Passages",
+					MessageBoxButton.YesNo);
+				switch (result)
+				{
+					case MessageBoxResult.Yes:
+						foreach (var title in missing)
+						{
+							mainWindow.AddPassage(title);
+						}
+						mainWindow.UpdateGraph();
+						break;
+				}
+			}
+
 			mainWindow.PassageUpdated();
+			mainWindow.Activate();
 		}
 
 		public void LoadData(MainWindow.JsonData.Passage data)

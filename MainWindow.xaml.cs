@@ -82,6 +82,7 @@ namespace DialogEditorWPF
 		private object m_selectedObject;
 		public string version = "0.0.5";
 		private bool m_viewMDS;
+		private bool m_hasChanges;
 
 		public MainWindow()
 		{
@@ -114,6 +115,26 @@ namespace DialogEditorWPF
 
 			gViewer.DoubleClick += OnDoubleClick;
 			gViewer.Click += GViewerOnClick;
+
+			Closing += OnClosing;
+		}
+
+		private void OnClosing(object sender, System.ComponentModel.CancelEventArgs e)
+		{
+			if (m_hasChanges)
+			{
+				var result = MessageBox.Show("You have unsaved changes. Save before closing?", "Save before closing?",
+					MessageBoxButton.YesNoCancel);
+				switch (result)
+				{
+					case MessageBoxResult.Yes:
+						Save(m_currentlyOpenFile);
+						break;
+					case MessageBoxResult.Cancel:
+						e.Cancel = true;
+						break;
+				}
+			}
 		}
 
 		private void GViewerOnClick(object sender, EventArgs eventArgs)
@@ -167,6 +188,11 @@ namespace DialogEditorWPF
 			SaveButton.IsEnabled = true;
 			SaveAsButton.IsEnabled = true;*/
 			CreateGraph();
+		}
+
+		public void MadeChanges()
+		{
+			m_hasChanges = true;
 		}
 
 		public void Save(string path)
@@ -230,8 +256,6 @@ namespace DialogEditorWPF
 					}
 				}
 			}
-
-
 
 			gViewer.CurrentLayoutMethod = LayoutMethod.UseSettingsOfTheGraph;
 			gViewer.Graph = graph;
@@ -377,6 +401,16 @@ namespace DialogEditorWPF
 			} while (m_passages.Any(x => x.title == name));
 
 			m_passages.Add(new JsonData.Passage { title = name });
+			CreateGraph();
+		}
+
+		public void AddPassage(string name)
+		{
+			m_passages.Add(new JsonData.Passage { title = name });
+		}
+
+		public void UpdateGraph()
+		{
 			CreateGraph();
 		}
 
