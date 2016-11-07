@@ -80,7 +80,7 @@ namespace DialogEditorWPF
 		private List<JsonData.Passage> m_passages = new List<JsonData.Passage>();
 		private string m_currentlyOpenFile;
 		private object m_selectedObject;
-		public string version = "0.0.6";
+		public string version = "0.0.7";
 		private bool m_viewMDS;
 		private bool m_hasChanges;
 
@@ -453,6 +453,8 @@ namespace DialogEditorWPF
 				// [[foo|bar][foo = 123]]
 				var start = line.IndexOf("[[", StringComparison.Ordinal) + 1;
 				var end = line.LastIndexOf(']');
+				if (start == -1 || end == -1)
+					break;
 
 				var full = line.Substring(start, end - start);
 				// full = [foo|bar][foo = 123]
