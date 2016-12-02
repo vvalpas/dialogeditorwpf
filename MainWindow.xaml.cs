@@ -407,6 +407,9 @@ namespace DialogEditorWPF
 
 		public void AddPassage(string name)
 		{
+			// dont add duplicates
+			if (m_passages.Any(x => x.title == name))
+				return;
 			m_passages.Add(new JsonData.Passage { title = name });
 		}
 
