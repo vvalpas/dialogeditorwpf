@@ -16,10 +16,11 @@
             </MenuItem>
         </Menu>
         <avalonEdit:TextEditor
-    xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"
-    x:Name="Editor"
-    SyntaxHighlighting="Lua"
-    FontFamily="Consolas"
-    FontSize="10pt" Margin="0,82,0,0"/>
+            xmlns:avalonEdit="http://icsharpcode.net/sharpdevelop/avalonedit"
+            x:Name="Editor"
+            SyntaxHighlighting="Lua"
+            FontFamily="Consolas"
+            ShowLineNumbers="True"
+            FontSize="10pt" Margin="0,82,0,0"/>
     </Grid>
 </Window>

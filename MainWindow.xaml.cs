@@ -15,15 +15,18 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Xml;
 using System.Xml.Serialization;
+using Microsoft.Msagl.Core.Geometry;
 using Microsoft.Msagl.Drawing;
 using Microsoft.Msagl.GraphViewerGdi;
 using Microsoft.Msagl.Layout.Layered;
 using Microsoft.Msagl.Layout.MDS;
 using Microsoft.Win32;
 using Newtonsoft.Json;
+using Color = Microsoft.Msagl.Drawing.Color;
 using Formatting = Newtonsoft.Json.Formatting;
 using ModifierKeys = System.Windows.Input.ModifierKeys;
 using Path = System.IO.Path;
+using Point = Microsoft.Msagl.Core.Geometry.Point;
 
 namespace DialogEditorWPF
 {
@@ -72,6 +75,7 @@ namespace DialogEditorWPF
 				[XmlIgnore]
 				public string body = string.Empty;
 				public string[] tags = new string[0];
+				public float x, y;
 			}
 
 			public List<Passage> passages = new List<Passage>();
@@ -264,6 +268,8 @@ namespace DialogEditorWPF
 
 		private List<string> GetIncludes(string str)
 		{
+			return new List<string>();
+			/*
 			var list = new List<string>();
 			var done = false;
 			const string regex = @"<<\w+>>";
@@ -287,12 +293,20 @@ namespace DialogEditorWPF
 					}
 				}
 			}
-			return list;
+			return list;*/
 		}
 
 		private Node CreateNode(JsonData.Passage passage)
 		{
-			return new Node(passage.title){UserData = passage.title};
+			var color = new Color(255,255,255);
+			if (passage.tags.Any(x => x.ToLowerInvariant() == "red"))
+				color = new Color(255,0,0);
+			if (passage.tags.Any(x => x.ToLowerInvariant() == "green"))
+				color = new Color(0, 255, 0);
+			if (passage.tags.Any(x => x.ToLowerInvariant() == "blue"))
+				color = new Color(0, 0, 255);
+			var node = new Node(passage.title) {UserData = passage.title, Attr = {FillColor = color}};
+			return node;
 		}
 
 		private void Close_CanExecute(object sender, CanExecuteRoutedEventArgs e)
@@ -353,7 +367,14 @@ namespace DialogEditorWPF
 
 		private void Save_Executed(object sender, ExecutedRoutedEventArgs e)
 		{
-			Save(m_currentlyOpenFile);
+			if (!string.IsNullOrEmpty(m_currentlyOpenFile))
+			{
+				Save(m_currentlyOpenFile);
+			}
+			else
+			{
+				SaveAs_Executed(null,null);
+			}
 		}
 
 		private void SaveAs_CanExecute(object sender, CanExecuteRoutedEventArgs e)
@@ -438,61 +459,33 @@ namespace DialogEditorWPF
 			}
 		}
 
-		public static IEnumerable<string> GetLinks(string body)
+		public IEnumerable<string> GetLinks(string body)
 		{
 			var links = new List<string>();
 			var lines = body.Split('\n');
-			var newBody = "";
 
 			foreach (var line in lines)
 			{
-				if (!line.Contains("[["))
+				var regex = "(action_option|say_option|continue)\\([\"\'](?<match>[^\"]*)[\"\']";
+				var rmatches = Regex.Matches(line, regex);
+				if (rmatches.Count > 0)
 				{
-					newBody += line + "\n";
-					continue;
+					var text = rmatches[0].Groups["match"].Captures[0].Value;
+					links.Add(text);
 				}
 
-				string displayText, passageTitle, script = "";
-				// [[foo|bar][foo = 123]]
-				var start = line.IndexOf("[[", StringComparison.Ordinal) + 1;
-				var end = line.LastIndexOf(']');
-				if (start == -1 || end == -1)
-					break;
-
-				var full = line.Substring(start, end - start);
-				// full = [foo|bar][foo = 123]
-				if (full.Contains("]["))
+				regex = "continue_random\\((?<match>.+)\\)";
+				rmatches = Regex.Matches(line, regex);
+				if (rmatches.Count > 0)
 				{
-					var chunks = full.Split(new[] { "][" }, StringSplitOptions.None);
-					var left = chunks[0].Substring(1);
-					script = chunks[1].Substring(0, chunks[1].Length - 1);
-					// left = foo|bar
-					// right = foo = 123
-					displayText = left;
-					passageTitle = left;
-
-					if (left.Contains("|"))
+					var text = rmatches[0].Groups["match"].Captures[0].Value;
+					regex = "[\"\'](?<match>[^\"]*)[\"\']";
+					rmatches = Regex.Matches(text, regex);
+					for (var i = 0; i < rmatches.Count; ++i)
 					{
-						var leftChunks = left.Split('|');
-						displayText = leftChunks[0];
-						passageTitle = leftChunks[1];
+						links.Add(rmatches[i].Groups["match"].Captures[0].Value);
 					}
 				}
-				else
-				{
-					full = full.Substring(1, full.Length - 2);
-					displayText = full;
-					passageTitle = full;
-
-					if (full.Contains("|"))
-					{
-						var leftChunks = full.Split('|');
-						displayText = leftChunks[0];
-						passageTitle = leftChunks[1];
-					}
-				}
-
-				links.Add(passageTitle);
 			}
 
 			return links;
